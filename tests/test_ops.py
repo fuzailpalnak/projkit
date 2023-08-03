@@ -91,8 +91,7 @@ def test_to_homogeneous():
 
     # Test case 9: Nx3 points with non-integer coordinates
     points9 = np.array([[1.1, 2.2, 3.3], [4.4, 5.5, 6.6], [7.7, 8.8, 9.9]])
-    expected_output9 = np.array([[1.1, 2.2, 3.3, 1], [4.4, 5.5, 6.6, 1], [7.7, 8.8, 9.9, 1]])
+    expected_output9 = np.array(
+        [[1.1, 2.2, 3.3, 1], [4.4, 5.5, 6.6, 1], [7.7, 8.8, 9.9, 1]]
+    )
     assert np.array_equal(to_homogeneous(points9), expected_output9)
-
-
-

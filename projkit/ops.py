@@ -1,3 +1,5 @@
+from typing import Any, Tuple
+
 import cv2
 import numpy as np
 
@@ -92,7 +94,7 @@ def get_C_from_R_t(R, t):
     return -(R.T @ t)
 
 
-def project_to_world_with_K_R_t_scale(
+def project_in_3d_with_K_R_t_scale(
     K: np.ndarray, R: np.ndarray, t: np.ndarray, s: np.ndarray, ic: np.ndarray
 ) -> np.ndarray:
     """
@@ -113,7 +115,7 @@ def project_to_world_with_K_R_t_scale(
     return np.linalg.inv(R) @ ((np.linalg.inv(K) @ (s * to_homogeneous(ic)).T) - t)
 
 
-def project_to_image_with_K_R_t(
+def project_in_2d_with_K_R_t(
     K: np.ndarray, R: np.ndarray, t: np.ndarray, wc: np.ndarray
 ) -> np.ndarray:
     """
@@ -140,8 +142,27 @@ def project_to_image_with_K_R_t(
     return ic
 
 
-def project_to_image_with_K_R_t_dist_coeff(
-    K: np.ndarray, R: np.ndarray, t: np.ndarray, d: np.ndarray, wc: np.ndarray
+def get_ic_wc_z_from_proj(inp: np.ndarray) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """
+    Extract image coordinates (ic), world coordinates (wc), and z-coordinates from the given projection array.
+
+    Args:
+        inp (np.ndarray): 2D array with shape (Nx3) representing a projection array.
+
+    Returns:
+        Tuple[np.ndarray, np.ndarray, np.ndarray]: A tuple containing the image coordinates (ic),
+        world coordinates (wc), and z-coordinates extracted from the input projection array.
+    """
+    assert inp.ndim == 2 and inp.shape[-1] == 5, f"Expected inp to have shape (Nx5), Got {inp.shape}"
+    return inp[, :2], inp[:, 2:], inp[:, -1:]
+
+
+def project_in_2d_with_K_R_t_dist_coeff(
+    K: np.ndarray,
+    R: np.ndarray,
+    t: np.ndarray,
+    d: np.ndarray,
+    wc: np.ndarray,
 ) -> np.ndarray:
     """
     Project 3D points in world coordinates to 2D image coordinates with distortion correction.
@@ -154,7 +175,8 @@ def project_to_image_with_K_R_t_dist_coeff(
         wc (np.ndarray): 2D array of shape (Nx3) containing 3D points in world coordinates.
 
     Returns:
-        np.ndarray: 2D array of shape (Nx2) containing 2D points in image coordinates with distortion correction.
+        np.ndarray: 2D array of shape (Nx5) containing 2D points in image coordinates and its corresponding 3d coordinates
+         with distortion correction.
     """
 
     # https://answers.opencv.org/question/20138/projectpoints-fails-with-points-behind-the-camera/
@@ -177,7 +199,7 @@ def project_to_image_with_K_R_t_dist_coeff(
     ic = (K @ to_homogeneous(cc).T).T
     ic = de_homogenize(ic)
 
-    return ic
+    return np.hstack(ic, wc[z > 0])
 
 
 def get_int_mat(fx: float, fy: float, cx: float, cy: float) -> np.ndarray:
@@ -216,25 +238,6 @@ def get_ext_mat(R: np.ndarray, t: np.ndarray):
     """
 
     return np.hstack([R, t])
-
-
-def to_image(h, w, ic: np.ndarray):
-    """
-    Convert 2D image coordinates to an image frame of size (h, w).
-
-    Args:
-        h (int): Height of the image frame.
-        w (int): Width of the image frame.
-        ic (np.ndarray): 2D array containing 2D image coordinates.
-
-    Returns:
-        np.ndarray: 2D array (image frame) with the points located at their respective positions marked with 255.
-    """
-
-    _frame = np.zeros((h, w))
-    _frame[ic[:, 1], ic[:, 0]] = 255
-
-    return _frame
 
 
 def Rx(rx: float):
