@@ -153,8 +153,10 @@ def get_ic_wc_z_from_proj(inp: np.ndarray) -> Tuple[np.ndarray, np.ndarray, np.n
         Tuple[np.ndarray, np.ndarray, np.ndarray]: A tuple containing the image coordinates (ic),
         world coordinates (wc), and z-coordinates extracted from the input projection array.
     """
-    assert inp.ndim == 2 and inp.shape[-1] == 5, f"Expected inp to have shape (Nx5), Got {inp.shape}"
-    return inp[, :2], inp[:, 2:], inp[:, -1:]
+    assert (
+        inp.ndim == 2 and inp.shape[-1] == 5
+    ), f"Expected inp to have shape (Nx5), Got {inp.shape}"
+    return inp[:, :2], inp[:, 2:], inp[:, -1:]
 
 
 def project_in_2d_with_K_R_t_dist_coeff(
@@ -163,7 +165,7 @@ def project_in_2d_with_K_R_t_dist_coeff(
     t: np.ndarray,
     d: np.ndarray,
     wc: np.ndarray,
-) -> np.ndarray:
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
     """
     Project 3D points in world coordinates to 2D image coordinates with distortion correction.
 
@@ -186,7 +188,7 @@ def project_in_2d_with_K_R_t_dist_coeff(
     ), f"Expected shape for wc = (Nx3), received {wc.shape}"
 
     wc_homogeneous = to_homogeneous(wc)
-    cc = (np.hstack([R, t]) @ wc.T).T
+    cc = (np.hstack([R, t]) @ wc_homogeneous.T).T
     z = cc[:, -1]
 
     cc = de_homogenize(cc)
@@ -199,7 +201,7 @@ def project_in_2d_with_K_R_t_dist_coeff(
     ic = (K @ to_homogeneous(cc).T).T
     ic = de_homogenize(ic)
 
-    return np.hstack(ic, wc[z > 0])
+    return get_ic_wc_z_from_proj(np.hstack([ic, wc[z > 0]]))
 
 
 def get_int_mat(fx: float, fy: float, cx: float, cy: float) -> np.ndarray:
@@ -288,7 +290,7 @@ def Rz(rz: float):
     )
 
 
-def get_R(rx: float, ry: float, rz: float) -> np.ndarray:
+def get_R(rx: float, ry: float, rz: float, to_rad=True) -> np.ndarray:
     """
     Calculate the 3x3 camera rotation matrix from the given rotation angles around x, y, and z axes.
 
@@ -302,4 +304,9 @@ def get_R(rx: float, ry: float, rz: float) -> np.ndarray:
     """
 
     # https://staff.fnwi.uva.nl/r.vandenboomgaard/IPCV20162017/LectureNotes/CV/PinholeCamera/PinholeCamera.html
+    if to_rad:
+        rx = np.deg2rad(rx)
+        ry = np.deg2rad(ry)
+        rz = np.deg2rad(rz)
+
     return (Rz(rz) @ Ry(ry) @ Rx(rx)).T

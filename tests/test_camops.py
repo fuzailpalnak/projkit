@@ -1,6 +1,6 @@
 import numpy as np
 
-from projkit.ops import de_homogenize, to_homogeneous
+from projkit.camops import de_homogenize, to_homogeneous
 
 
 def test_de_homogenize():
