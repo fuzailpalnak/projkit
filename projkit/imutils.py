@@ -55,6 +55,8 @@ def to_array(h: int, w: int, ic: np.ndarray, wc: np.ndarray) -> np.ndarray:
     assert wc.shape[-1] == 3, (
         f"Expected world_coordinates be of dim (Nx3), Got " f"wc = {wc.shape}"
     )
+    ic = ic.astype(np.int)
+
     frame = np.zeros((h, w, 3))
     frame[ic[:, 1], ic[:, 0]] = wc
 
@@ -130,7 +132,7 @@ def intersection(
     intersection_frame[np.where(binary_mask != 255)] = (0, 0, 0)
     locations = intersection_frame[np.where(intersection_frame[:, :, -1] > 0)]
 
-    return intersection_frame, locations
+    return intersection_frame[:, :, -1], locations
 
 
 def cluster_binary_using_contour(binary_mask: np.ndarray) -> List[np.ndarray]:
