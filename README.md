@@ -1,4 +1,4 @@
-# projkit: Simplifying Camera Projection
+# projkit
 
 Welcome to **projkit**, a Python library designed to simplify camera projection tasks and calculations,
 particularly when working with image predictions and 3D point cloud data. 
