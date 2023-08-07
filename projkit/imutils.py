@@ -173,7 +173,7 @@ def intersection(
     intersection_frame[np.where(binary_mask != 255)] = (0, 0, 0)
     locations = intersection_frame[np.where(intersection_frame[:, :, -1] > 0)]
 
-    return intersection_frame[:, :, -1], locations
+    return intersection_frame, locations
 
 
 def cluster_binary_using_contour(binary_mask: np.ndarray) -> List[np.ndarray]:
@@ -226,7 +226,7 @@ def intersection_on_clusters(
     cluster_locations_wc = list()
 
     cluster_locations_ic = fn(binary_mask)
-    image3d, _ = intersection(binary_mask, ic, wc)
+    image3d, locations = intersection(binary_mask, ic, wc)
     for i, cl in enumerate(cluster_locations_ic):
         _tmp = image3d[cl[:, 0], cl[:, 1]]
         _tmp = _tmp[np.where(_tmp[:, -1] != 0)]
