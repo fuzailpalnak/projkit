@@ -4,6 +4,11 @@ Welcome to **projkit**, a Python library designed to simplify camera projection 
 particularly when working with image predictions and 3D point cloud data. 
 This library provides functions to effectively incorporate point cloud data with image predictions.
 
+## Installation
+
+```sh
+pip install projkit
+```
 
 ## Features
 
