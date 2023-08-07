@@ -5,29 +5,99 @@ import numpy as np
 from scipy.spatial import cKDTree
 
 
+def _assert_ic_wc_shape(ic: np.ndarray, wc: np.ndarray):
+    assert ic.shape[0] == wc.shape[0], (
+        f"Expected image_coordinates and world_coordinates to have same number of points, Got "
+        f"ic = {ic.shape[0]}, wc = {wc.shape[0]}"
+    )
+
+    assert ic.shape[-1] == 2, (
+        f"Expected image_coordinates be of dim (Nx2), Got " f"ic = {ic.shape}"
+    )
+    assert wc.shape[-1] == 3, (
+        f"Expected world_coordinates be of dim (Nx3), Got " f"wc = {wc.shape}"
+    )
+
+
 class Query:
+    """
+    Class for performing nearest-neighbor queries on image and world coordinates.
+
+    Args:
+        ic (np.ndarray): 2D array of shape (Nx2) containing image coordinates.
+        wc (np.ndarray): 2D array of shape (Nx3) containing world coordinates.
+
+    Attributes:
+        _ic (np.ndarray): Image coordinates.
+        _wc (np.ndarray): World coordinates.
+        _tree (cKDTree): KD-tree for efficient nearest-neighbor search on image coordinates.
+
+    Methods:
+        query(coordinates: list, dist_thresh: int) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+            Perform a nearest-neighbor query for given coordinates and distance threshold.
+        generate_points_for_nn_search(Ny: int, Nx: int, binary_mask: np.ndarray) -> List[Tuple[int, int]]:
+            Generate a list of image coordinates for nearest-neighbor search based on a binary mask.
+    """
+
     def __init__(self, ic: np.ndarray, wc: np.ndarray):
+        """
+        Initialize the Query object.
+
+        Args:
+            ic (np.ndarray): 2D array of shape (Nx2) containing image coordinates.
+            wc (np.ndarray): 2D array of shape (Nx3) containing world coordinates.
+        """
+
+        _assert_ic_wc_shape(ic, wc)
+
         self._ic = ic
         self._wc = wc
 
-        self._tree = cKDTree(self._ic)
+        self._tree = cKDTree(self._ic.astype(np.int))
 
-    def query(self, coordinate, dist_thresh):
-        closet_match = None
+    def query(
+        self, coordinates: list, dist_thresh: int, k: int = 1
+    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+        """
+        Perform a nearest-neighbor query (w, h) for given coordinates and distance threshold.
 
-        dist, pt_idx = self._tree.query(coordinate, k=1)
-        if dist <= dist_thresh:
-            closet_match = self._wc[pt_idx]
+        Args:
+            coordinates (list): List of query coordinates.
+            dist_thresh (int): Maximum distance for considering nearest neighbors.
+            k (int): The list of k-th nearest neighbors to return
 
-        return dist, closet_match
+        Returns:
+            Tuple[np.ndarray, np.ndarray, np.ndarray]: A tuple containing arrays of image coordinates,
+            world coordinates, and distances for the nearest neighbors within the specified threshold.
+        """
 
-    def query_batch(self, coordinates, dist_thresh):
-        closet_match = None
-        dist, pt_idxs = self._tree.query(coordinates, k=1)
+        c_ic, c_wc, c_dist = None, None, None
+
+        dist, pt_idxs = self._tree.query(coordinates, k=k)
         _valid = np.where(np.array(dist) <= dist_thresh)
-        closet_match = self._wc[pt_idxs[_valid]]
+        if len(_valid[0]) > 0:
+            c_ic, c_wc, c_dist = self._ic[_valid], self._wc[_valid], dist[_valid]
 
-        return closet_match, dist[_valid]
+        return c_ic, c_wc, c_dist
+
+    def generate_points_for_nn_search(
+        self, Ny: int, Nx: int, binary_mask: np.ndarray
+    ) -> List[Tuple[int, int]]:
+        """
+        Generate a list of image coordinates for nearest-neighbor search based on a binary mask.
+
+        Args:
+            Ny (int): Height of the image frame.
+            Nx (int): Width of the image frame.
+            binary_mask (np.ndarray): 2D binary mask representing regions of interest.
+
+        Returns:
+            List[Tuple[int, int]]: A list of image coordinates for nearest-neighbor search.
+        """
+
+        _missing_z_values_image = difference(Ny, Nx, self._ic, self._wc, binary_mask)
+        x, y = np.where(_missing_z_values_image == 255)
+        return list(zip(y, x))
 
 
 def to_array(h: int, w: int, ic: np.ndarray, wc: np.ndarray) -> np.ndarray:
@@ -44,17 +114,8 @@ def to_array(h: int, w: int, ic: np.ndarray, wc: np.ndarray) -> np.ndarray:
         np.ndarray: A 3D array (frame) of size (h, w, 3) with world coordinates placed at their respective image
         positions.
     """
-    assert ic.shape[0] == wc.shape[0], (
-        f"Expected image_coordinates and world_coordinates to have same number of points, Got "
-        f"ic = {ic.shape[0]}, wc = {wc.shape[0]}"
-    )
+    _assert_ic_wc_shape(ic, wc)
 
-    assert ic.shape[-1] == 2, (
-        f"Expected image_coordinates be of dim (Nx2), Got " f"ic = {ic.shape}"
-    )
-    assert wc.shape[-1] == 3, (
-        f"Expected world_coordinates be of dim (Nx3), Got " f"wc = {wc.shape}"
-    )
     ic = ic.astype(np.int)
 
     frame = np.zeros((h, w, 3))
@@ -78,17 +139,7 @@ def to_image(h: int, w: int, ic: np.ndarray, wc: np.ndarray) -> np.ndarray:
     Returns:
         np.ndarray: A 2D array representing the image frame with points marked at their respective positions.
     """
-    assert ic.shape[0] == wc.shape[0], (
-        f"Expected image_coordinates and world_coordinates to have same number of points, Got "
-        f"ic = {ic.shape[0]}, wc = {wc.shape[0]}"
-    )
-
-    assert ic.shape[-1] == 2, (
-        f"Expected image_coordinates be of dim (Nx2), Got " f"ic = {ic.shape}"
-    )
-    assert wc.shape[-1] == 3, (
-        f"Expected world_coordinates be of dim (Nx3), Got " f"wc = {wc.shape}"
-    )
+    _assert_ic_wc_shape(ic, wc)
 
     ic = ic.astype(np.int)
 
@@ -115,17 +166,7 @@ def intersection(
             - locations (np.ndarray): A 2D array containing the intersection points with non-zero z-coordinates.
     """
 
-    assert ic.shape[0] == wc.shape[0], (
-        f"Expected image_coordinates and world_coordinates to have same number of points, Got "
-        f"ic = {ic.shape[0]}, wc = {wc.shape[0]}"
-    )
-
-    assert ic.shape[-1] == 2, (
-        f"Expected image_coordinates be of dim (Nx2), Got " f"ic = {ic.shape}"
-    )
-    assert wc.shape[-1] == 3, (
-        f"Expected world_coordinates be of dim (Nx3), Got " f"wc = {wc.shape}"
-    )
+    _assert_ic_wc_shape(ic, wc)
 
     h, w = binary_mask.shape
     intersection_frame = to_array(h, w, ic, wc)
@@ -247,17 +288,7 @@ def filter_image_and_world_points_with_img_dim(
         coordinates.
     """
 
-    assert ic.shape[0] == wc.shape[0], (
-        f"Expected image_coordinates and world_coordinates to have same number of points, Got "
-        f"ic = {ic.shape[0]}, wc = {wc.shape[0]}"
-    )
-
-    assert ic.shape[-1] == 2, (
-        f"Expected image_coordinates be of dim (Nx2), Got " f"ic = {ic.shape}"
-    )
-    assert wc.shape[-1] == 3, (
-        f"Expected world_coordinates be of dim (Nx3), Got " f"wc = {wc.shape}"
-    )
+    _assert_ic_wc_shape(ic, wc)
 
     indices = _filter(w, h, ic)
 
@@ -266,5 +297,52 @@ def filter_image_and_world_points_with_img_dim(
     return ic[indices], wc, wc[:, -1:]
 
 
-def nn_search(ic: np.ndarray, wc: np.ndarray):
+def difference(
+    Ny: int, Nx: int, ic: np.ndarray, wc: np.ndarray, binary_mask: np.ndarray
+) -> np.ndarray:
+    """
+    Compute the difference between binary mask and projected point cloud highlighting missing z-values in the
+    point cloud for areas where mask is available.
+
+    Args:
+        Ny (int): Height of the image frame.
+        Nx (int): Width of the image frame.
+        ic (np.ndarray): 2D array of shape (Nx2) containing image coordinates.
+        wc (np.ndarray): 2D array of shape (Nx3) containing world coordinates.
+        binary_mask (np.ndarray): 2D binary mask representing regions of interest.
+
+    Returns:
+        np.ndarray: A 2D array representing the difference image that highlights missing z-values in the point cloud.
+    """
+    assert (
+        binary_mask.ndim == 2
+    ), f"Expected binary mask to have shape (HxW), Recievec {binary_mask.shape}"
+
+    _assert_ic_wc_shape(ic, wc)
+
+    point_cloud_image = to_image(Ny, Nx, ic, wc)
+
+    _z_value_image = np.where(binary_mask == 255, point_cloud_image, 0)
+    _missing_z_values_image = np.where(binary_mask, _z_value_image, 255)
+    _missing_z_values_image = np.where(_missing_z_values_image > 0, 0, 255)
+
+    # _combined_image = _z_value_image + _missing_z_values_image
+
+    return _missing_z_values_image
+
+
+def nn_interpolation(ic: np.ndarray, wc: np.ndarray) -> Query:
+    """
+    Perform nearest-neighbor interpolation using image and world coordinates.
+
+    Args:
+        ic (np.ndarray): 2D array of shape (Nx2) containing image coordinates.
+        wc (np.ndarray): 2D array of shape (Nx3) containing world coordinates.
+
+    Returns:
+        Query: A Query object initialized with image coordinates (ic) and world coordinates (wc).
+    """
+
+    _assert_ic_wc_shape(ic, wc)
+
     return Query(ic, wc)
