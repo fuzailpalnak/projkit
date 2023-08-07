@@ -6,7 +6,7 @@ making it particularly useful when working with point cloud data and dealing wit
 
 ### Usage
 
-1. Given camera parameters, [project point cloud data to image cordinates](example/ex.ipynb#project_data)
+1. Given camera parameters, project point cloud data to image cordinates
 ```python
 from projkit.camops import project_in_2d_with_K_R_t_dist_coeff
 from projkit.imutils import to_image, filter_image_and_world_points_with_img_dim
@@ -17,7 +17,7 @@ ic, wc, z = filter_image_and_world_points_with_img_dim(Nx, Ny, ic, wc)
 projectection_on_image = to_image(Ny, Nx, ic, wc)
 
 ```
-2. [Find Intersection between projected data and binary mask](example/ex.ipynb#intersection)
+2. Find Intersection between projected data and binary mask
 ```python
 from projkit.imutils import intersection
 binary_mask = cv2.imread(
