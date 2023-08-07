@@ -14,7 +14,7 @@ except FileNotFoundError:
 
 setup(
     name="projkit",
-    version="0.1.0",
+    version="0.1.1",
     author="Fuzail Palnak",
     author_email="fuzailpalnak@gmail.com",
     url="https://github.com/fuzailpalnak/projkit",
