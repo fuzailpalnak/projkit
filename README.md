@@ -1,5 +1,6 @@
 # projkit
-![PyPI - Downloads](https://img.shields.io/pypi/dw/projkit)
+![PyPI](https://img.shields.io/pypi/v/projkit) ![PyPI - Downloads](https://img.shields.io/pypi/dw/projkit)
+
 
 Welcome to **projkit**, a Python library designed to simplify camera projection tasks and calculations,
 particularly when working with image predictions and 3D point cloud data. 
