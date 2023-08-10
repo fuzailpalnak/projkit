@@ -19,8 +19,8 @@ setup(
     author_email="fuzailpalnak@gmail.com",
     url="https://github.com/fuzailpalnak/projkit",
     description="Library designed to simplify camera projection tasks and calculations, "
-                "particularly when working with image predictions and 3D point cloud data."
-                " This library provides functions to effectively incorporate point cloud data with image predictions.",
+    "particularly when working with image predictions and 3D point cloud data."
+    " This library provides functions to effectively incorporate point cloud data with image predictions.",
     long_description=long_description,
     long_description_content_type="text/markdown",
     packages=find_packages(),
