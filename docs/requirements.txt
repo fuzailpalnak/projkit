@@ -2,3 +2,5 @@ Sphinx
 nbsphinx
 numpydoc
 sphinx-rtd-theme
+numpy
+opencv-python
