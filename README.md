@@ -1,5 +1,6 @@
 # projkit
 ![PyPI](https://img.shields.io/pypi/v/projkit) ![PyPI - Downloads](https://img.shields.io/pypi/dw/projkit)
+[![Documentation Status](https://readthedocs.org/projects/projkit-docs/badge/?version=latest)](https://projkit-docs.readthedocs.io/en/latest/?badge=latest)
 
 
 Welcome to **projkit**, a Python library designed to simplify camera projection tasks and calculations,
@@ -68,6 +69,9 @@ pip install projkit
   for i, batch in batch_gen(points, batch_size=500):
       ic, wc, dist = query.query(batch, dist_thresh=15)
   ```
+
+## Documentation
+View the documentation for the project [here](projkit-docs.readthedocs.io).
 
 [comment]: <> (## Installation)
 
