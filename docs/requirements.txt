@@ -4,3 +4,4 @@ numpydoc
 sphinx-rtd-theme
 numpy
 opencv-python
+scikit-learn
