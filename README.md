@@ -71,7 +71,7 @@ pip install projkit
   ```
 
 ## Documentation
-View the documentation for the project [here](projkit-docs.readthedocs.io).
+View the documentation for the project [here](https://projkit-docs.readthedocs.io/en/latest/).
 
 [comment]: <> (## Installation)
 
