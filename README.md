@@ -1,5 +1,6 @@
 # projkit
-![PyPI](https://img.shields.io/pypi/v/projkit) ![PyPI - Downloads](https://img.shields.io/pypi/dw/projkit)
+![PyPI](https://img.shields.io/pypi/v/projkit)
+[![Downloads](https://static.pepy.tech/badge/projkit)](https://pepy.tech/project/projkit)
 [![Documentation Status](https://readthedocs.org/projects/projkit-docs/badge/?version=latest)](https://projkit-docs.readthedocs.io/en/latest/?badge=latest)
 
 
